@@ -7,7 +7,7 @@ spring:
 
 eureka:
   instance:
-    appname: eureka-server
+    appname: ${spring.application.name}
     hostname: 127.0.0.1
   client:
     # 是否将自己注册到注册中心
