@@ -9,6 +9,11 @@
   <packaging>pom</packaging>
   <name>spring-cloud-study</name>
 
+  <modules>
+    <module>consumer-service</module>
+    <module>producer-service</module>
+  </modules>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
@@ -50,12 +55,6 @@
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
         <version>${servlet.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.projectlombok</groupId>
-        <artifactId>lombok</artifactId>
-        <version>${lombok.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
