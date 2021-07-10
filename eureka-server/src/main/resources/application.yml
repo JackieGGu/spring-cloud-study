@@ -8,7 +8,7 @@ spring:
 eureka:
   instance:
     appname: ${spring.application.name}
-    hostname: 127.0.0.1
+    hostname: ${spring.cloud.client.ip-address}
   client:
     # 是否将自己注册到注册中心
     register-with-eureka: false
