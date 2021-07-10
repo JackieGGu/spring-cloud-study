@@ -12,10 +12,10 @@ eureka:
     # Eureka界面显示的应用名称
     appname: ${spring.application.name}
     # Eureka界面显示的应用信息
-    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}:@project.version@
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}:[@project.version@]
     # 使用IP地址注册
     prefer-ip-address: true
   client:
     service-url:
       # 注册中心的地址
-      defaultZone: http://127.0.0.1:10001/eureka/
+      defaultZone: http://${spring.cloud.client.ip-address}:10001/eureka/,http://${spring.cloud.client.ip-address}:10002/eureka/
