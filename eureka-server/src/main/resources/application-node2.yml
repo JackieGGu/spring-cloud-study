@@ -8,16 +8,15 @@ spring:
 eureka:
   instance:
     appname: ${spring.application.name}
-    hostname: ${spring.cloud.client.ip-address}
+    # eureka集群时, 在节点服务器IP一致的情况下不要使用IP注册(prefer-ip-address: true), 尽量采用修改hosts配置域名的方式, 否则集群无效
+    hostname: eureka-node2
     # Eureka界面显示的应用信息
-    instance-id: ${spring.cloud.client.ip-address}:${server.port}:[@project.version@]
-    # 使用IP地址注册
-    prefer-ip-address: true
+    instance-id: ${eureka.instance.hostname}:${server.port}:[@project.version@]
   client:
     # 是否将自己注册到注册中心
     register-with-eureka: true
     # 是否需要从注册中心获取注册信息
     fetch-registry: true
     service-url:
-      # 暴露给客户端注册中心的地址
-      defaultZone: http://${eureka.instance.hostname}:10001/eureka/
+      # 注册中心的地址
+      defaultZone: http://eureka-node1:10001/eureka/
