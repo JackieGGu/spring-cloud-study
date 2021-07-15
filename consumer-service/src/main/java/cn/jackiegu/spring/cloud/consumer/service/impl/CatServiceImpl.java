@@ -26,11 +26,15 @@ public class CatServiceImpl implements CatService {
     // private DiscoveryClient discoveryClient;
 
     @Override
-    public CatDTO get() {
+    public CatDTO get(Boolean sleep) {
         CatDTO result;
         SecureRandom random = new SecureRandom();
         Map<String, Object> params = new HashMap<>();
-        params.put("randomId", random.nextInt(1000));
+        if (sleep == null || !sleep) {
+            params.put("randomId", random.nextInt(1000) + 1);
+        } else {
+            params.put("randomId", 0);
+        }
 
         // 使用硬编码方式
         // result = restTemplate.getForObject("http://127.0.0.1:10021/producer/cat/generate?id={randomId}", CatDTO.class, params);

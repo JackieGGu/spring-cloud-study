@@ -4,5 +4,5 @@ import cn.jackiegu.spring.cloud.consumer.model.CatDTO;
 
 public interface CatService {
 
-    CatDTO get();
+    CatDTO get(Boolean sleep);
 }

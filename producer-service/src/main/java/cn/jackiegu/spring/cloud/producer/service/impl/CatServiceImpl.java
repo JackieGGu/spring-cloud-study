@@ -19,6 +19,12 @@ public class CatServiceImpl implements CatService {
 
     @Override
     public CatDTO generate(Integer id) {
+        if (id == 0) {
+            try {
+                Thread.sleep(5 * 1000);
+            } catch (Exception ignored) {
+            }
+        }
         return CatDTO.builder()
             .id(id)
             .name("球球")
