@@ -29,6 +29,8 @@ eureka:
       defaultZone: http://eureka-node1:10001/eureka/,http://eureka-node2:10002/eureka/
 
 ribbon:
+  restclient:
+    enabled: true
   # 连接超时时间
   ConnectTimeout: 2000
   # 请求超时时间
