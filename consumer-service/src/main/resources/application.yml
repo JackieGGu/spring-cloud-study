@@ -38,7 +38,7 @@ producer-service:
     # 请求超时时间
     ReadTimeout: 500
     # 无论什么情况失败都进行重试
-    OkToRetryOnAllOperations: true
+    OkToRetryOnAllOperations: false
     # 切换服务的重试次数
     MaxAutoRetriesNextServer: 2
     # 对当前服务的重试次数
