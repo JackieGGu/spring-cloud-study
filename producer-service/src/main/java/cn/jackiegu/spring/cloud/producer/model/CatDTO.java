@@ -28,4 +28,6 @@ public class CatDTO {
     private String sex;
 
     private Integer age;
+
+    private String port;
 }
