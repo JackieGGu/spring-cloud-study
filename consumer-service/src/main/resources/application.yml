@@ -28,18 +28,20 @@ eureka:
       # 注册中心的地址
       defaultZone: http://eureka-node1:10001/eureka/,http://eureka-node2:10002/eureka/
 
+ribbon:
+  # 连接超时时间
+  ConnectTimeout: 2000
+  # 请求超时时间
+  ReadTimeout: 3000
+
 # Ribbon负载均衡配置(服务名称 + ribbon + NFLoadBalancerRuleClassName: 策略方式)
 producer-service:
   ribbon:
     # 负载均衡规则类名
     NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule
-    # 连接超时时间
-    ConnectTimeout: 100
-    # 请求超时时间
-    ReadTimeout: 500
     # 无论什么情况失败都进行重试
-    OkToRetryOnAllOperations: false
+    OkToRetryOnAllOperations: true
     # 切换服务的重试次数
     MaxAutoRetriesNextServer: 2
     # 对当前服务的重试次数
-    maxAutoRetries: 0
+    MaxAutoRetries: 1

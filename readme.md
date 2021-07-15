@@ -89,3 +89,47 @@
 **Last 1000 newly registered leases**
 
 ​	最后1000个新注册续约的实例
+
+
+
+##### 2. Ribbon负载均衡
+
+###### 负载均衡介绍
+
+负载均衡一般分为两种
+
+- 服务端负载均衡
+  - Nginx
+  - F5(硬件设备)
+- 客户端负载均衡
+  - Ribbon
+
+###### Ribbon负载均衡策略
+
+- com.netflix.loadbalancer.RoundRobinRule
+
+  轮询方式，默认方式
+
+- com.netflix.loadbalancer.RandomRule
+
+  随机方式
+
+- com.netflix.loadbalancer.RetryRule
+
+  轮询重试方式，重试默认采用的也是轮询
+
+- com.netflix.loadbalancer.WeightedResponseTimeRule
+
+  权重方式，以响应时间决定每个服务的权重，一般响应时间越短权重越高
+
+- com.netflix.loadbalancer.BestAvailableRule
+
+  最优方式，一般选择并发数最小的服务
+
+- com.netflix.loadbalancer.AvailabilityFilteringRule
+
+  可用性过滤方式，过滤掉那些根据特定规则（如：连接不上、并发数超过阀值）而不可用的服务，再在剩余服务中选择
+
+- com.netflix.loadbalancer.ZoneAvoidanceRule
+
+  区域性过滤 + 可用性过滤
