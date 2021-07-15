@@ -23,3 +23,8 @@ eureka:
     service-url:
       # 注册中心的地址
       defaultZone: http://eureka-node1:10001/eureka/,http://eureka-node2:10002/eureka/
+
+# Ribbon负载均衡配置(服务名称 + ribbon + NFLoadBalancerRuleClassName: 策略方式)
+producer-service:
+  ribbon:
+   NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
