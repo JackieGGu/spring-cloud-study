@@ -3,14 +3,11 @@ package cn.jackiegu.spring.cloud.consumer.service.impl;
 import cn.jackiegu.spring.cloud.consumer.model.CatDTO;
 import cn.jackiegu.spring.cloud.consumer.service.CatService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,8 +22,8 @@ public class CatServiceImpl implements CatService {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Autowired
-    private DiscoveryClient discoveryClient;
+    // @Autowired
+    // private DiscoveryClient discoveryClient;
 
     @Override
     public CatDTO get() {
@@ -39,14 +36,17 @@ public class CatServiceImpl implements CatService {
         // result = restTemplate.getForObject("http://127.0.0.1:10021/producer/cat/generate?id={randomId}", CatDTO.class, params);
 
         // 使用注册中心方式
-        List<ServiceInstance> instances = discoveryClient.getInstances("producer-service");
-        ServiceInstance producerServiceInstance = instances.get(0);
-        String url = "http://" +
-            producerServiceInstance.getHost() +
-            ":" +
-            producerServiceInstance.getPort() +
-            "/producer/cat/generate?id={randomId}";
-        result = restTemplate.getForObject(url, CatDTO.class, params);
+        // List<ServiceInstance> instances = discoveryClient.getInstances("producer-service");
+        // ServiceInstance producerServiceInstance = instances.get(0);
+        // String url = "http://" +
+        //     producerServiceInstance.getHost() +
+        //     ":" +
+        //     producerServiceInstance.getPort() +
+        //     "/producer/cat/generate?id={randomId}";
+        // result = restTemplate.getForObject(url, CatDTO.class, params);
+
+        // 使用Ribbon客户端负载均衡方式(默认以轮询方式)
+        result = restTemplate.getForObject("http://producer-service/producer/cat/generate?id={randomId}", CatDTO.class, params);
         return result;
     }
 }
