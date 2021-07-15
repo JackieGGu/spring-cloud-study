@@ -15,6 +15,10 @@ eureka:
   server:
     # 启用自我保护机制
     enable-self-preservation: false
+    # 每分钟最少续约数中的百分比例值
+    # renewal-percent-threshold: 0.85
+    # 每分钟最少续约数更新周期
+    renewal-threshold-update-interval-ms: 60000
     # 检测注册信息续约有效性周期(毫秒)
     # eviction-interval-timer-in-ms: 60000
   client:
