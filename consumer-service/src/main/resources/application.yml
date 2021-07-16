@@ -9,7 +9,7 @@ spring:
 
 logging:
   level:
-    root: debug
+    root: info
 
 eureka:
   instance:
@@ -37,18 +37,18 @@ ribbon:
     # 对以下服务的Ribbon客户端进行饥饿加载
     clients: producer-service
 
-# Ribbon负载均衡配置(服务名称 + ribbon + NFLoadBalancerRuleClassName: 策略方式)
+# Ribbon针对某个服务的配置(服务名称.ribbon.configKey: configValue)
 producer-service:
   ribbon:
-    # 负载均衡规则类名
+    # 负载均衡配置
     NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule
     # 连接超时时间
     ConnectTimeout: 2000
     # 请求超时时间
     ReadTimeout: 3000
-    # 无论什么情况失败都进行重试
-    OkToRetryOnAllOperations: true
+    # 无论什么类型请求失败都进行重试, 否则只会对GET请求重试
+    OkToRetryOnAllOperations: false
     # 切换服务的重试次数
     MaxAutoRetriesNextServer: 2
     # 对当前服务的重试次数
-    MaxAutoRetries: 1
+    MaxAutoRetries: 0
