@@ -2,6 +2,8 @@ package cn.jackiegu.spring.cloud.consumer.service.impl;
 
 import cn.jackiegu.spring.cloud.consumer.model.CatDTO;
 import cn.jackiegu.spring.cloud.consumer.service.CatService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +21,8 @@ import java.util.Map;
 @Service
 public class CatServiceImpl implements CatService {
 
+    Logger logger = LoggerFactory.getLogger(CatServiceImpl.class);
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -28,6 +32,7 @@ public class CatServiceImpl implements CatService {
     @Override
     public CatDTO get(Boolean sleep) {
         CatDTO result;
+        logger.info("Request producer-service, sleep: {}", sleep);
         SecureRandom random = new SecureRandom();
         Map<String, Object> params = new HashMap<>();
         if (sleep == null || !sleep) {
