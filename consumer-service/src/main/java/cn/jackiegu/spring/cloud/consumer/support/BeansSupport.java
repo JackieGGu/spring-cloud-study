@@ -20,6 +20,12 @@ public class BeansSupport {
     @Bean
     @LoadBalanced
     public RestTemplate restTemplate() {
+        // 设置超时时间
+        // SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        // factory.setConnectTimeout(2000);
+        // factory.setReadTimeout(3000);
+        // return new RestTemplate(factory);
+
         return new RestTemplate();
     }
 }
