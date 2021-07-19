@@ -90,7 +90,7 @@
 
 ​	最后1000个新注册续约的实例
 
-
+<br/>
 
 ##### 2. Ribbon负载均衡
 
@@ -133,3 +133,641 @@
 - com.netflix.loadbalancer.ZoneAvoidanceRule
 
   区域性过滤 + 可用性过滤
+
+###### Ribbon失败重试机制
+
+**方案一：使用对RestTemplate添加拦截器的方式**
+
+1. 引入spring-retry包
+
+   ```xml
+   <dependency>
+     <groupId>org.springframework.retry</groupId>
+     <artifactId>spring-retry</artifactId>
+   </dependency>
+   ```
+
+2. 使用@LoadBalanced注解修饰RestTemplate实例的声明
+
+   ```java
+   /**
+    * 在使用Ribbon负载均衡时必须使用@LoadBalanced注解
+    */
+   @Bean
+   @LoadBalanced
+   public RestTemplate restTemplate() {
+       // 配置超时时间
+       SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+       factory.setConnectTimeout(2000);
+       factory.setReadTimeout(3000);
+       return new RestTemplate(factory);
+   }
+   ```
+
+3. 对服务之间调用进行负载均衡配置和失败重试配置
+
+   全局配置
+
+   ```yaml
+   ribbon:
+     # 负载均衡配置
+     NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule
+     # 无论什么类型请求失败都进行重试, 否则只会对GET请求重试
+     OkToRetryOnAllOperations: false
+     # 切换服务的重试次数
+     MaxAutoRetriesNextServer: 2
+     # 对当前服务的重试次数
+     MaxAutoRetries: 0
+     
+     # 连接超时时间(该配置在此方式中无效, 可采用在声明RestTemplate实例时进行超时时间的全局配置, 如上)
+     # ConnectTimeout: 2000
+     # 请求超时时间(该配置在此方式中无效, 可采用在声明RestTemplate实例时进行超时时间的全局配置, 如上)
+     # ReadTimeout: 3000
+   ```
+
+   针对某个服务配置
+
+   ```yaml
+   # 这个服务的名称
+   application-name:
+     ribbon:
+       # 负载均衡配置
+       NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule
+       # 无论什么类型请求失败都进行重试, 否则只会对GET请求重试
+       OkToRetryOnAllOperations: false
+       # 切换服务的重试次数
+       MaxAutoRetriesNextServer: 2
+       # 对当前服务的重试次数
+       MaxAutoRetries: 0
+       
+       # 连接超时时间(该配置在此方式中无效)
+       # ConnectTimeout: 2000
+       # 请求超时时间(该配置在此方式中无效)
+       # ReadTimeout: 3000
+   ```
+
+4. 源码分析
+
+   1) 从@LoadBalanced注解作为入口，可得知该注解所在jar包的spring自动装配配置文件spring.factories如下
+
+   ```
+   # AutoConfiguration
+   org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+   org.springframework.cloud.client.CommonsClientAutoConfiguration,\
+   org.springframework.cloud.client.ReactiveCommonsClientAutoConfiguration,\
+   org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClientAutoConfiguration,\
+   org.springframework.cloud.client.discovery.composite.reactive.ReactiveCompositeDiscoveryClientAutoConfiguration,\
+   org.springframework.cloud.client.discovery.noop.NoopDiscoveryClientAutoConfiguration,\
+   org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration,\
+   org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration,\
+   org.springframework.cloud.client.hypermedia.CloudHypermediaAutoConfiguration,\
+   org.springframework.cloud.client.loadbalancer.AsyncLoadBalancerAutoConfiguration,\
+   # 这个类就是我们要找的负载均衡的自动配置类
+   org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration,\
+   org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration,\
+   org.springframework.cloud.client.loadbalancer.reactive.ReactorLoadBalancerClientAutoConfiguration,\
+   org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancerAutoConfiguration,\
+   org.springframework.cloud.client.serviceregistry.ServiceRegistryAutoConfiguration,\
+   org.springframework.cloud.commons.httpclient.HttpClientConfiguration,\
+   org.springframework.cloud.commons.util.UtilAutoConfiguration,\
+   org.springframework.cloud.configuration.CompatibilityVerifierAutoConfiguration,\
+   org.springframework.cloud.client.serviceregistry.AutoServiceRegistrationAutoConfiguration
+   # Environment Post Processors
+   org.springframework.boot.env.EnvironmentPostProcessor=\
+   org.springframework.cloud.client.HostInfoEnvironmentPostProcessor
+   # Failure Analyzers
+   org.springframework.boot.diagnostics.FailureAnalyzer=\
+   org.springframework.cloud.configuration.CompatibilityNotMetFailureAnalyzer
+   
+   ```
+
+   2) LoadBalancerAutoConfiguration源码如下
+
+   ```java
+   @Configuration(proxyBeanMethods = false)
+   @ConditionalOnClass(RestTemplate.class)
+   @ConditionalOnBean(LoadBalancerClient.class)
+   @EnableConfigurationProperties(LoadBalancerRetryProperties.class)
+   public class LoadBalancerAutoConfiguration {
+   
+       /**
+        * 注入我们声明RestTemplate实例
+        */
+   	@LoadBalanced
+   	@Autowired(required = false)
+   	private List<RestTemplate> restTemplates = Collections.emptyList();
+   
+   	@Autowired(required = false)
+   	private List<LoadBalancerRequestTransformer> transformers = Collections.emptyList();
+   
+   	@Bean
+   	public SmartInitializingSingleton loadBalancedRestTemplateInitializerDeprecated(
+   			final ObjectProvider<List<RestTemplateCustomizer>> restTemplateCustomizers) {
+   		return () -> restTemplateCustomizers.ifAvailable(customizers -> {
+   			for (RestTemplate restTemplate : LoadBalancerAutoConfiguration.this.restTemplates) {
+   				for (RestTemplateCustomizer customizer : customizers) {
+                       /*
+                        * 步骤6
+                        * 对RestTemplate实例进行自定义配置
+                        */
+   					customizer.customize(restTemplate);
+   				}
+   			}
+   		});
+   	}
+   
+       /**
+        * 步骤4
+        * 创建LoadBalancerRequestFactory(负载均衡请求工厂)实例, 并注入LoadBalancerClient实例
+        */
+   	@Bean
+   	@ConditionalOnMissingBean
+   	public LoadBalancerRequestFactory loadBalancerRequestFactory(
+   			LoadBalancerClient loadBalancerClient) {
+   		return new LoadBalancerRequestFactory(loadBalancerClient, this.transformers);
+   	}
+   
+   	@Configuration(proxyBeanMethods = false)
+   	@ConditionalOnMissingClass("org.springframework.retry.support.RetryTemplate")
+   	static class LoadBalancerInterceptorConfig {
+   
+   		//......
+   
+   	}
+   
+   	@Configuration(proxyBeanMethods = false)
+   	@ConditionalOnClass(RetryTemplate.class)
+   	public static class RetryAutoConfiguration {
+   
+   		//......
+   
+   	}
+   
+   	@Configuration(proxyBeanMethods = false)
+   	@ConditionalOnClass(RetryTemplate.class)
+   	public static class RetryInterceptorAutoConfiguration {
+   
+           /**
+            * 步骤5
+            * 创建RetryLoadBalancerInterceptor(重试负载均衡拦截器)实例, 并注入LoadBalancerClient、LoadBalancerRequestFactory、LoadBalancedRetryFactory等实例
+            */
+   		@Bean
+   		@ConditionalOnMissingBean
+   		public RetryLoadBalancerInterceptor loadBalancerRetryInterceptor(
+   				LoadBalancerClient loadBalancerClient,
+   				LoadBalancerRetryProperties properties,
+   				LoadBalancerRequestFactory requestFactory,
+   				LoadBalancedRetryFactory loadBalancedRetryFactory) {
+   			return new RetryLoadBalancerInterceptor(loadBalancerClient, properties,
+   					requestFactory, loadBalancedRetryFactory);
+   		}
+   
+   		@Bean
+   		@ConditionalOnMissingBean
+   		public RestTemplateCustomizer restTemplateCustomizer(
+   				final RetryLoadBalancerInterceptor loadBalancerInterceptor) {
+   			return restTemplate -> {
+   				List<ClientHttpRequestInterceptor> list = new ArrayList<>(
+   						restTemplate.getInterceptors());
+                   /*
+                    * 步骤7
+                    * 对RestTemplate实例进行添加RetryLoadBalancerInterceptor(重试负载均衡拦截器)
+                    */
+   				list.add(loadBalancerInterceptor);
+   				restTemplate.setInterceptors(list);
+   			};
+   		}
+   
+   	}
+   
+   }
+   ```
+
+   3) 再根据Spring Cloud Netflix Ribbon源码中的spring.factories配置文件，可找到Ribbon的自动配置类RibbonAutoConfiguration
+
+   ```
+   org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+   org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration
+   ```
+
+   ```java
+   @Configuration
+   @Conditional(RibbonAutoConfiguration.RibbonClassesConditions.class)
+   @RibbonClients
+   @AutoConfigureAfter(
+   		name = "org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration")
+   // 声明该配置类在LoadBalancerAutoConfiguration加载之前进行加载
+   @AutoConfigureBefore({ LoadBalancerAutoConfiguration.class,
+   		AsyncLoadBalancerAutoConfiguration.class })
+   @EnableConfigurationProperties({ RibbonEagerLoadProperties.class,
+   		ServerIntrospectorProperties.class })
+   @ConditionalOnProperty(value = "spring.cloud.loadbalancer.ribbon.enabled",
+   		havingValue = "true", matchIfMissing = true)
+   public class RibbonAutoConfiguration {
+   
+   	@Autowired(required = false)
+   	private List<RibbonClientSpecification> configurations = new ArrayList<>();
+   
+   	@Autowired
+   	private RibbonEagerLoadProperties ribbonEagerLoadProperties;
+   
+   	@Bean
+   	public HasFeatures ribbonFeature() {
+   		return HasFeatures.namedFeature("Ribbon", Ribbon.class);
+   	}
+   
+       /**
+        * 步骤1
+        * 创建SpringClientFactory(Spring客户端工厂)实例, 并注入相关配置
+        */
+   	@Bean
+   	@ConditionalOnMissingBean
+   	public SpringClientFactory springClientFactory() {
+   		SpringClientFactory factory = new SpringClientFactory();
+   		factory.setConfigurations(this.configurations);
+   		return factory;
+   	}
+   
+       /**
+        * 步骤2
+        * 创建LoadBalancerClient(负载均衡客户端)实例, 并注入SpringClientFactory实例
+        */
+   	@Bean
+   	@ConditionalOnMissingBean(LoadBalancerClient.class)
+   	public LoadBalancerClient loadBalancerClient() {
+   		return new RibbonLoadBalancerClient(springClientFactory());
+   	}
+   
+       /**
+        * 步骤3
+        * 创建LoadBalancedRetryFactory(负载均衡重试工厂)实例, 并注入SpringClientFactory实例
+        */
+   	@Bean
+   	@ConditionalOnClass(name = "org.springframework.retry.support.RetryTemplate")
+   	@ConditionalOnMissingBean
+   	public LoadBalancedRetryFactory loadBalancedRetryPolicyFactory(
+   			final SpringClientFactory clientFactory) {
+   		return new RibbonLoadBalancedRetryFactory(clientFactory);
+   	}
+   
+   	@Bean
+   	@ConditionalOnMissingBean
+   	public PropertiesFactory propertiesFactory() {
+   		return new PropertiesFactory();
+   	}
+   
+   	@Bean
+   	@ConditionalOnProperty("ribbon.eager-load.enabled")
+   	public RibbonApplicationContextInitializer ribbonApplicationContextInitializer() {
+   		return new RibbonApplicationContextInitializer(springClientFactory(),
+   				ribbonEagerLoadProperties.getClients());
+   	}
+   
+   	@Configuration(proxyBeanMethods = false)
+   	@ConditionalOnClass(HttpRequest.class)
+   	@ConditionalOnRibbonRestClient
+   	protected static class RibbonClientHttpRequestFactoryConfiguration {
+   
+   		//......
+   
+   	}
+   
+   	@Target({ ElementType.TYPE, ElementType.METHOD })
+   	@Retention(RetentionPolicy.RUNTIME)
+   	@Documented
+   	@Conditional(OnRibbonRestClientCondition.class)
+   	@interface ConditionalOnRibbonRestClient {
+   
+   	}
+   
+   	private static class OnRibbonRestClientCondition extends AnyNestedCondition {
+   
+   		//......
+   
+   	}
+   
+   	static class RibbonClassesConditions extends AllNestedConditions {
+   
+   		//......
+   
+   	}
+   
+   }
+   ```
+
+**方案二：使用Ribbon的RestClient的方式**
+
+1. 使用@LoadBalanced注解修饰RestTemplate实例的声明
+
+   ```java
+   /**
+    * 在使用Ribbon负载均衡时必须使用@LoadBalanced注解
+    */
+   @Bean
+   @LoadBalanced
+   public RestTemplate restTemplate() {
+       return new RestTemplate();
+   }
+   ```
+
+2. 对服务之间调用进行负载均衡配置和失败重试配置
+
+   ```yaml
+   ribbon:
+     restclient:
+       # 启用Ribbon的RestClient, 必须配置该项
+       enabled: true
+     eager-load:
+       # 对以下服务的Ribbon客户端进行饥饿加载, 以逗号隔开
+       clients: application-name1,application-name2
+   ```
+
+   全局配置
+
+   ```yaml
+   ribbon:
+     # 负载均衡配置
+     NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule
+     # 无论什么类型请求失败都进行重试, 否则只会对GET请求重试
+     OkToRetryOnAllOperations: false
+     # 切换服务的重试次数
+     MaxAutoRetriesNextServer: 2
+     # 对当前服务的重试次数
+     MaxAutoRetries: 0
+     # 连接超时时间
+     ConnectTimeout: 2000
+     # 请求超时时间
+     ReadTimeout: 3000
+   ```
+
+      针对某个服务配置
+
+   ```yaml
+   # 这个服务的名称
+   application-name:
+     ribbon:
+       # 负载均衡配置
+       NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule
+       # 无论什么类型请求失败都进行重试, 否则只会对GET请求重试
+       OkToRetryOnAllOperations: false
+       # 切换服务的重试次数
+       MaxAutoRetriesNextServer: 2
+       # 对当前服务的重试次数
+       MaxAutoRetries: 0
+       # 连接超时时间
+       ConnectTimeout: 2000
+       # 请求超时时间
+       ReadTimeout: 3000
+   ```
+
+3. 源码分析
+
+   i) 根据LoadBalancerAutoConfiguration类和RibbonAutoConfiguration类重新分析，如下：
+
+   ```java
+   @Configuration(proxyBeanMethods = false)
+   @ConditionalOnClass(RestTemplate.class)
+   @ConditionalOnBean(LoadBalancerClient.class)
+   @EnableConfigurationProperties(LoadBalancerRetryProperties.class)
+   public class LoadBalancerAutoConfiguration {
+   
+       /**
+        * 注入我们声明RestTemplate实例
+        */
+   	@LoadBalanced
+   	@Autowired(required = false)
+   	private List<RestTemplate> restTemplates = Collections.emptyList();
+   
+   	@Autowired(required = false)
+   	private List<LoadBalancerRequestTransformer> transformers = Collections.emptyList();
+   
+   	@Bean
+   	public SmartInitializingSingleton loadBalancedRestTemplateInitializerDeprecated(
+   			final ObjectProvider<List<RestTemplateCustomizer>> restTemplateCustomizers) {
+   		return () -> restTemplateCustomizers.ifAvailable(customizers -> {
+   			for (RestTemplate restTemplate : LoadBalancerAutoConfiguration.this.restTemplates) {
+   				for (RestTemplateCustomizer customizer : customizers) {
+                       /*
+                        * 步骤7
+                        * 对RestTemplate实例进行自定义配置
+                        */
+   					customizer.customize(restTemplate);
+   				}
+   			}
+   		});
+   	}
+   
+       /**
+        * 步骤5
+        * 创建LoadBalancerRequestFactory(负载均衡请求工厂)实例, 并注入LoadBalancerClient实例
+        * 无意义
+        */
+   	@Bean
+   	@ConditionalOnMissingBean
+   	public LoadBalancerRequestFactory loadBalancerRequestFactory(
+   			LoadBalancerClient loadBalancerClient) {
+   		return new LoadBalancerRequestFactory(loadBalancerClient, this.transformers);
+   	}
+   
+   	@Configuration(proxyBeanMethods = false)
+   	@ConditionalOnMissingClass("org.springframework.retry.support.RetryTemplate")
+   	static class LoadBalancerInterceptorConfig {
+   
+   		//......
+   
+   	}
+   
+   	@Configuration(proxyBeanMethods = false)
+   	@ConditionalOnClass(RetryTemplate.class)
+   	public static class RetryAutoConfiguration {
+   
+   		//......
+   
+   	}
+   
+   	@Configuration(proxyBeanMethods = false)
+   	@ConditionalOnClass(RetryTemplate.class)
+   	public static class RetryInterceptorAutoConfiguration {
+   
+           /**
+            * 步骤6
+            * 创建RetryLoadBalancerInterceptor(重试负载均衡拦截器)实例, 并注入LoadBalancerClient、LoadBalancerRequestFactory、LoadBalancedRetryFactory等实例
+            * 因为该拦截器并不会注入到RestTemplate实例中, 所以创建出来也并不会应用到程序运行中, 从而导致第3、4、5步创建的实例都无意义
+            */
+   		@Bean
+   		@ConditionalOnMissingBean
+   		public RetryLoadBalancerInterceptor loadBalancerRetryInterceptor(
+   				LoadBalancerClient loadBalancerClient,
+   				LoadBalancerRetryProperties properties,
+   				LoadBalancerRequestFactory requestFactory,
+   				LoadBalancedRetryFactory loadBalancedRetryFactory) {
+   			return new RetryLoadBalancerInterceptor(loadBalancerClient, properties,
+   					requestFactory, loadBalancedRetryFactory);
+   		}
+   
+   		@Bean
+   		@ConditionalOnMissingBean
+   		public RestTemplateCustomizer restTemplateCustomizer(
+   				final RetryLoadBalancerInterceptor loadBalancerInterceptor) {
+   			return restTemplate -> {
+   				List<ClientHttpRequestInterceptor> list = new ArrayList<>(
+   						restTemplate.getInterceptors());
+   				list.add(loadBalancerInterceptor);
+   				restTemplate.setInterceptors(list);
+   			};
+   		}
+   
+   	}
+   
+   }
+   ```
+
+   ```java
+   @Configuration
+   @Conditional(RibbonAutoConfiguration.RibbonClassesConditions.class)
+   @RibbonClients
+   @AutoConfigureAfter(
+   		name = "org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration")
+   // 声明该配置类在LoadBalancerAutoConfiguration加载之前进行加载
+   @AutoConfigureBefore({ LoadBalancerAutoConfiguration.class,
+   		AsyncLoadBalancerAutoConfiguration.class })
+   @EnableConfigurationProperties({ RibbonEagerLoadProperties.class,
+   		ServerIntrospectorProperties.class })
+   @ConditionalOnProperty(value = "spring.cloud.loadbalancer.ribbon.enabled",
+   		havingValue = "true", matchIfMissing = true)
+   public class RibbonAutoConfiguration {
+   
+   	@Autowired(required = false)
+   	private List<RibbonClientSpecification> configurations = new ArrayList<>();
+   
+   	@Autowired
+   	private RibbonEagerLoadProperties ribbonEagerLoadProperties;
+   
+   	@Bean
+   	public HasFeatures ribbonFeature() {
+   		return HasFeatures.namedFeature("Ribbon", Ribbon.class);
+   	}
+   
+       /**
+        * 步骤1
+        * 创建SpringClientFactory(Spring客户端工厂)实例, 并注入相关配置
+        */
+   	@Bean
+   	@ConditionalOnMissingBean
+   	public SpringClientFactory springClientFactory() {
+   		SpringClientFactory factory = new SpringClientFactory();
+   		factory.setConfigurations(this.configurations);
+   		return factory;
+   	}
+   
+       /**
+        * 步骤3
+        * 创建LoadBalancerClient(负载均衡客户端)实例, 并注入SpringClientFactory实例
+        * 无意义
+        */
+   	@Bean
+   	@ConditionalOnMissingBean(LoadBalancerClient.class)
+   	public LoadBalancerClient loadBalancerClient() {
+   		return new RibbonLoadBalancerClient(springClientFactory());
+   	}
+   
+       /**
+        * 步骤4
+        * 创建LoadBalancedRetryFactory(负载均衡重试工厂)实例, 并注入SpringClientFactory实例
+        * 无意义
+        */
+   	@Bean
+   	@ConditionalOnClass(name = "org.springframework.retry.support.RetryTemplate")
+   	@ConditionalOnMissingBean
+   	public LoadBalancedRetryFactory loadBalancedRetryPolicyFactory(
+   			final SpringClientFactory clientFactory) {
+   		return new RibbonLoadBalancedRetryFactory(clientFactory);
+   	}
+   
+   	@Bean
+   	@ConditionalOnMissingBean
+   	public PropertiesFactory propertiesFactory() {
+   		return new PropertiesFactory();
+   	}
+   
+   	@Bean
+   	@ConditionalOnProperty("ribbon.eager-load.enabled")
+   	public RibbonApplicationContextInitializer ribbonApplicationContextInitializer() {
+   		return new RibbonApplicationContextInitializer(springClientFactory(),
+   				ribbonEagerLoadProperties.getClients());
+   	}
+   
+   	@Configuration(proxyBeanMethods = false)
+   	@ConditionalOnClass(HttpRequest.class)
+   	@ConditionalOnRibbonRestClient
+   	protected static class RibbonClientHttpRequestFactoryConfiguration {
+   
+   		@Autowired
+   		private SpringClientFactory springClientFactory;
+   
+   		@Bean
+   		public RestTemplateCustomizer restTemplateCustomizer(
+   				final RibbonClientHttpRequestFactory ribbonClientHttpRequestFactory) {
+   			return restTemplate -> restTemplate
+                       /*
+                        * 步骤8
+                        * 对RestTemplate注入RibbonClientHttpRequestFactor实例
+                        */
+   					.setRequestFactory(ribbonClientHttpRequestFactory);
+   		}
+   
+           /**
+            * 步骤2
+            * 创建RibbonClientHttpRequestFactory(Ribbon客户端Http请求工厂)实例, 并注入SpringClientFactory实例
+            */
+   		@Bean
+   		public RibbonClientHttpRequestFactory ribbonClientHttpRequestFactory() {
+   			return new RibbonClientHttpRequestFactory(this.springClientFactory);
+   		}
+   
+   	}
+   
+       /**
+        * 因OnRibbonRestClientCondition被实例化, 所以导致使用该注解修饰的类将自动装配
+        */
+   	@Target({ ElementType.TYPE, ElementType.METHOD })
+   	@Retention(RetentionPolicy.RUNTIME)
+   	@Documented
+   	@Conditional(OnRibbonRestClientCondition.class)
+   	@interface ConditionalOnRibbonRestClient {
+   
+   	}
+   
+   	private static class OnRibbonRestClientCondition extends AnyNestedCondition {
+   
+   		OnRibbonRestClientCondition() {
+   			super(ConfigurationPhase.REGISTER_BEAN);
+   		}
+   
+   		@Deprecated // remove in Edgware"
+   		@ConditionalOnProperty("ribbon.http.client.enabled")
+   		static class ZuulProperty {
+   
+   		}
+   
+           /**
+            * 前置条件
+            * 若存在该配置, 则该类将被实例化, 从而导致OnRibbonRestClientCondition也将被实例化
+            */
+   		@ConditionalOnProperty("ribbon.restclient.enabled")
+   		static class RibbonProperty {
+   
+   		}
+   
+   	}
+   
+   	static class RibbonClassesConditions extends AllNestedConditions {
+   
+   		//......
+           
+   	}
+   
+   }
+   ```
+
+   
