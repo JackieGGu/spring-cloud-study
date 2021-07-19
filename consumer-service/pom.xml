@@ -42,7 +42,7 @@
       <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
     </dependency>
 
-    <!-- ribbon retry -->
+    <!-- spring retry -->
     <dependency>
       <groupId>org.springframework.retry</groupId>
       <artifactId>spring-retry</artifactId>
