@@ -1,12 +1,12 @@
 package cn.jackiegu.spring.cloud.consumer.service.impl;
 
+import cn.jackiegu.spring.cloud.consumer.feign.producer.service.CatFeignApi;
 import cn.jackiegu.spring.cloud.consumer.model.CatDTO;
 import cn.jackiegu.spring.cloud.consumer.service.CatService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
 import java.util.HashMap;
@@ -23,11 +23,14 @@ public class CatServiceImpl implements CatService {
 
     Logger logger = LoggerFactory.getLogger(CatServiceImpl.class);
 
-    @Autowired
-    private RestTemplate restTemplate;
-
     // @Autowired
     // private DiscoveryClient discoveryClient;
+
+    // @Autowired
+    // private RestTemplate restTemplate;
+
+    @Autowired
+    private CatFeignApi catFeignApi;
 
     @Override
     public CatDTO get(Boolean sleep) {
@@ -42,7 +45,7 @@ public class CatServiceImpl implements CatService {
         }
 
         // 使用硬编码方式
-        // result = restTemplate.getForObject("http://127.0.0.1:10021/producer/cat/generate?id={randomId}", CatDTO.class, params);
+        // result = restTemplate.getForObject("http://127.0.0.1:10021/producer/cat/generate/{randomId}", CatDTO.class, params);
 
         // 使用注册中心方式
         // List<ServiceInstance> instances = discoveryClient.getInstances("producer-service");
@@ -55,7 +58,10 @@ public class CatServiceImpl implements CatService {
         // result = restTemplate.getForObject(url, CatDTO.class, params);
 
         // 使用Ribbon客户端负载均衡方式(默认以轮询方式)
-        result = restTemplate.getForObject("http://producer-service/producer/cat/generate?id={randomId}", CatDTO.class, params);
+        // result = restTemplate.getForObject("http://producer-service/producer/cat/generate/{randomId}", CatDTO.class, params);
+
+        // 使用Feign组件
+        result = catFeignApi.generate(Integer.parseInt(params.get("randomId").toString()));
         return result;
     }
 }
