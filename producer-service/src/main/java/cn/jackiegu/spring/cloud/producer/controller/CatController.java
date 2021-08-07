@@ -4,6 +4,7 @@ import cn.jackiegu.spring.cloud.producer.model.CatDTO;
 import cn.jackiegu.spring.cloud.producer.service.CatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,8 +21,8 @@ public class CatController {
     @Autowired
     private CatService catService;
 
-    @GetMapping("generate")
-    public CatDTO generate(Integer id) {
+    @GetMapping("generate/{id}")
+    public CatDTO generate(@PathVariable Integer id) {
         return catService.generate(id);
     }
 }
