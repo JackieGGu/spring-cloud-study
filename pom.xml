@@ -23,6 +23,7 @@
     <!-- 外部依赖 -->
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
     <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
+    <spring-boot-admin.version>2.3.1</spring-boot-admin.version>
     <mysql.version>8.0.21</mysql.version>
     <servlet.version>3.1.0</servlet.version>
     <lombok.version>1.18.16</lombok.version>
@@ -44,6 +45,12 @@
         <version>${spring-cloud.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>de.codecentric</groupId>
+        <artifactId>spring-boot-admin-starter-client</artifactId>
+        <version>${spring-boot-admin.version}</version>
       </dependency>
 
       <dependency>
