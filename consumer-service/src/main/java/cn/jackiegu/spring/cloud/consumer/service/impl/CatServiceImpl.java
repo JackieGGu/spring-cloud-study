@@ -6,7 +6,6 @@ import cn.jackiegu.spring.cloud.consumer.service.CatService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -31,7 +30,6 @@ public class CatServiceImpl implements CatService {
     // private RestTemplate restTemplate;
 
     @Autowired
-    @Qualifier("cn.jackiegu.spring.cloud.consumer.feign.producer.service.CatFeignApi")
     private CatFeignApi catFeignApi;
 
     @Override
