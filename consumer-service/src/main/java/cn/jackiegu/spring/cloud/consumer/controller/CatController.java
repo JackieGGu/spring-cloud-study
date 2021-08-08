@@ -21,8 +21,8 @@ public class CatController {
     private CatService catService;
 
     @GetMapping("get")
-    public CatDTO get(Boolean sleep) {
-        return catService.get(sleep);
+    public CatDTO get(Boolean sleep, Long sleepTime) {
+        return catService.get(sleep, sleepTime);
     }
 
     @GetMapping("hello")

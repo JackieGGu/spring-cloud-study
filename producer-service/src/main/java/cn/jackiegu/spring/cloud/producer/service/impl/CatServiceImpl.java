@@ -24,9 +24,9 @@ public class CatServiceImpl implements CatService {
     @Override
     public CatDTO generate(Integer id) {
         logger.info("Generate Cat entity, id: {}", id);
-        if (id == 0) {
+        if (id > 1000) {
             try {
-                Thread.sleep(5 * 1000);
+                Thread.sleep(id);
             } catch (Exception ignored) {
             }
         }
