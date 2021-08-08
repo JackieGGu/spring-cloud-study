@@ -32,8 +32,8 @@ public class CatServiceImpl implements CatService {
         }
         return CatDTO.builder()
             .id(id)
-            .name("球球")
-            .sex("公")
+            .name("qiuqiu")
+            .sex("man")
             .age(4)
             .port(port)
             .build();

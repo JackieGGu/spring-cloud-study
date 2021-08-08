@@ -27,6 +27,6 @@ public class CatController {
 
     @GetMapping("hello")
     public String hello() {
-        return "hello 球球";
+        return "hello qiuqiu";
     }
 }
