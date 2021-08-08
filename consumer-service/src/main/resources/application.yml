@@ -50,7 +50,7 @@ producer-service:
     # 连接超时时间
     ConnectTimeout: 2000
     # 请求超时时间
-    ReadTimeout: 10000
+    ReadTimeout: 3000
     # 无论什么类型请求失败都进行重试, 否则只会对GET请求重试
     OkToRetryOnAllOperations: false
     # 切换服务的重试次数
@@ -88,4 +88,17 @@ hystrix:
         isolation:
          thread:
            # 配置hystrix服务降级超时时长
-           timeoutInMilliseconds: 3000
+           timeoutInMilliseconds: 600000
+  threadpool:
+    # Hystrix针对某个服务的配置
+    producer-service:
+      # 允许最大线程数超过核心线程数
+      # allowMaximumSizeToDivergeFromCoreSize: false
+      # 核心线程数
+      coreSize: 3
+      # 最大线程数
+      # maximumSize: 3
+      # 闲置超时时间
+      # keepAliveTimeMinutes:
+      # 任务队列大小
+      maxQueueSize: 1
