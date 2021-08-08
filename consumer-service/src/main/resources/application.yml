@@ -2,6 +2,10 @@ server:
   port: 10011
   servlet:
     context-path: /consumer
+  tomcat:
+    threads:
+      # tomcat最大线程
+      max: 10
 
 spring:
   application:
@@ -67,9 +71,9 @@ feign:
     response:
       # 启用响应数据压缩
       enabled: true
-  client:
-    config:
-      # Feign针对某个服务的配置
-      producer-service:
+  # client:
+    # config:
+      # Feign针对某个服务的配置(可能会导致Ribbon对该服务的配置失效)
+      # producer-service:
         # 日志级别(NONE: 不输入任何日志, BASIC: 输出请求方法、URL、响应代码、执行时间, HEADERS: 在BASIC基础上加上请求和响应头信息, FULL: 输出所有日志)
-        loggerLevel: FULL
+        # loggerLevel: FULL

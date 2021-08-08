@@ -24,4 +24,9 @@ public class CatController {
     public CatDTO get(Boolean sleep) {
         return catService.get(sleep);
     }
+
+    @GetMapping("hello")
+    public String hello() {
+        return "hello 球球";
+    }
 }
