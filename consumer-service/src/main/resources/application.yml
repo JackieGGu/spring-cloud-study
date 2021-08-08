@@ -9,6 +9,7 @@ spring:
 
 logging:
   level:
+    cn.jackiegu.spring.cloud.consumer.feign: debug
     root: info
 
 eureka:
@@ -52,3 +53,23 @@ producer-service:
     MaxAutoRetriesNextServer: 2
     # 对当前服务的重试次数
     MaxAutoRetries: 0
+
+# Feign配置
+feign:
+  compression:
+    request:
+      # 启用请求数据压缩
+      enabled: true
+      # 压缩数据类型
+      # mime-types: text/xml,application/xml,application/json
+      # 触发压缩大小的下限
+      # min-request-size: 2048
+    response:
+      # 启用响应数据压缩
+      enabled: true
+  client:
+    config:
+      # Feign针对某个服务的配置
+      producer-service:
+        # 日志级别(NONE: 不输入任何日志, BASIC: 输出请求方法、URL、响应代码、执行时间, HEADERS: 在BASIC基础上加上请求和响应头信息, FULL: 输出所有日志)
+        loggerLevel: FULL
