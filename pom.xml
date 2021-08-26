@@ -25,6 +25,7 @@
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
     <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
     <spring-boot-admin.version>2.3.1</spring-boot-admin.version>
+    <apollo-client.version>1.8.0</apollo-client.version>
     <mysql.version>8.0.21</mysql.version>
     <servlet.version>3.1.0</servlet.version>
     <lombok.version>1.18.16</lombok.version>
@@ -52,6 +53,12 @@
         <groupId>de.codecentric</groupId>
         <artifactId>spring-boot-admin-starter-client</artifactId>
         <version>${spring-boot-admin.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.ctrip.framework.apollo</groupId>
+        <artifactId>apollo-client</artifactId>
+        <version>${apollo-client.version}</version>
       </dependency>
 
       <dependency>
