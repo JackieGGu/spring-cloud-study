@@ -17,3 +17,9 @@ spring:
       #   172.16.0.0 - 172.31.255.255
       #   192.168.0.0 - 192.168.255.255
       # use-only-site-local-interfaces: true
+
+# apollo配置
+apollo:
+  bootstrap:
+    # 启用apollo配置中心
+    enabled: true
