@@ -62,7 +62,7 @@
   </dependencies>
 
   <build>
-    <finalName>consumer-service</finalName>
+    <finalName>${artifactId}</finalName>
     <resources>
       <resource>
         <directory>src/main/resources</directory>

@@ -50,7 +50,7 @@
   </dependencies>
 
   <build>
-    <finalName>eureka-server</finalName>
+    <finalName>${artifactId}</finalName>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
