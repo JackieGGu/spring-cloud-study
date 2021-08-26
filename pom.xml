@@ -13,6 +13,7 @@
     <module>consumer-service</module>
     <module>eureka-server</module>
     <module>producer-service</module>
+    <module>zuul-service</module>
   </modules>
 
   <properties>
