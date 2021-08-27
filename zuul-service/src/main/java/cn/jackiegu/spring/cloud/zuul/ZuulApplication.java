@@ -1,5 +1,6 @@
 package cn.jackiegu.spring.cloud.zuul;
 
+import cn.jackiegu.spring.cloud.zuul.support.BeansSupport;
 import com.ctrip.framework.apollo.core.ConfigConsts;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
 import com.ctrip.framework.apollo.spring.annotation.ApolloConfigChangeListener;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.context.scope.refresh.RefreshScope;
+import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 
 /**
  * Zuul网关启动类
@@ -16,6 +18,7 @@ import org.springframework.cloud.context.scope.refresh.RefreshScope;
  * @date 2021/8/26
  */
 @EnableApolloConfig({ConfigConsts.NAMESPACE_APPLICATION, "spring-cloud-zuul.user"})
+@EnableZuulProxy
 @SpringBootApplication
 public class ZuulApplication {
 
@@ -24,6 +27,24 @@ public class ZuulApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ZuulApplication.class, args);
+    }
+
+    /**
+     * 热更新相关配置
+     */
+    @ApolloConfigChangeListener
+    public void applicationConfigOnChange(ConfigChangeEvent changeEvent) {
+        boolean zuulPropertiesChanged = false;
+        for (String changedKey: changeEvent.changedKeys()) {
+            if (changedKey.startsWith("zuul.")) {
+                zuulPropertiesChanged = true;
+                break;
+            }
+        }
+
+        if (zuulPropertiesChanged) {
+            refreshScope.refresh(BeansSupport.ZUUL_PROPERTIES_BEAN);
+        }
     }
 
     /**
