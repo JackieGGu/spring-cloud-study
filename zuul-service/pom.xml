@@ -48,6 +48,12 @@
       <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
     </dependency>
 
+    <!-- spring retry -->
+    <dependency>
+      <groupId>org.springframework.retry</groupId>
+      <artifactId>spring-retry</artifactId>
+    </dependency>
+
     <!-- apollo client -->
     <dependency>
       <groupId>com.ctrip.framework.apollo</groupId>
