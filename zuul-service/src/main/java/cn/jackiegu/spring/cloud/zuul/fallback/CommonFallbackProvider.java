@@ -27,7 +27,7 @@ public class CommonFallbackProvider implements FallbackProvider {
 
     @Override
     public String getRoute() {
-        // *表示所有
+        // 表示全局降级
         return "*";
     }
 
@@ -37,10 +37,10 @@ public class CommonFallbackProvider implements FallbackProvider {
         return new ClientHttpResponse() {
 
             @Override
+            @SuppressWarnings("deprecation")
             public HttpHeaders getHeaders() {
                 HttpHeaders headers = new HttpHeaders();
-                MediaType type = new MediaType("application", "json", StandardCharsets.UTF_8);
-                headers.setContentType(type);
+                headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
                 return headers;
             }
 
