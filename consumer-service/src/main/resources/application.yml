@@ -102,3 +102,5 @@ hystrix:
       # keepAliveTimeMinutes:
       # 任务队列大小
       maxQueueSize: 1
+      # 任务队列拒绝阈值
+      queueSizeRejectionThreshold: 1
