@@ -3,6 +3,7 @@ package cn.jackiegu.spring.cloud.consumer.service.impl;
 import cn.jackiegu.spring.cloud.consumer.feign.producer.service.CatFeignApi;
 import cn.jackiegu.spring.cloud.consumer.model.CatDTO;
 import cn.jackiegu.spring.cloud.consumer.service.CatService;
+import com.netflix.hystrix.HystrixCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 /**
  * 猫咪 Service
@@ -21,7 +25,9 @@ import java.util.Map;
 @Service
 public class CatServiceImpl implements CatService {
 
-    Logger logger = LoggerFactory.getLogger(CatServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(CatServiceImpl.class);
+
+    private final Map<String, Future<CatDTO>> asyncResult = new ConcurrentHashMap<>();
 
     // @Autowired
     // private DiscoveryClient discoveryClient;
@@ -63,5 +69,26 @@ public class CatServiceImpl implements CatService {
         // 使用Feign组件
         result = catFeignApi.generate(Integer.parseInt(params.get("randomId").toString()));
         return result;
+    }
+
+    @Override
+    public String getAsync(Long sleepTime) {
+        String uuid = UUID.randomUUID().toString();
+        HystrixCommand<CatDTO> command = catFeignApi.generateAsync(sleepTime == null ? 0 : sleepTime.intValue());
+        asyncResult.put(uuid, command.queue());
+        return uuid;
+    }
+
+    @Override
+    public CatDTO getAsyncResult(String key) {
+        try {
+            Future<CatDTO> future = asyncResult.get(key);
+            if (future != null && future.isDone()) {
+                return future.get();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

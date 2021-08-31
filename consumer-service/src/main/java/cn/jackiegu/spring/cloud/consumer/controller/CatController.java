@@ -25,6 +25,16 @@ public class CatController {
         return catService.get(sleep, sleepTime);
     }
 
+    @GetMapping("get/async")
+    public String getAsync(Long sleepTime) {
+        return catService.getAsync(sleepTime);
+    }
+
+    @GetMapping("get/async/result")
+    public CatDTO getAsyncResult(String key) {
+        return catService.getAsyncResult(key);
+    }
+
     @GetMapping("hello")
     public String hello() {
         return "hello qiuqiu";
