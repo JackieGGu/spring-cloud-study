@@ -31,3 +31,8 @@ eureka:
     service-url:
       # 注册中心的地址
       defaultZone: http://eureka-node2:10002/eureka/
+
+arthas:
+  telnet-port: 3651
+  http-port: 8561
+  tunnel-server: ws://192.168.60.5:7777/ws

@@ -104,3 +104,8 @@ hystrix:
       maxQueueSize: 1
       # 任务队列拒绝阈值
       queueSizeRejectionThreshold: 1
+
+arthas:
+  telnet-port: 3653
+  http-port: 8563
+  tunnel-server: ws://192.168.60.5:7777/ws

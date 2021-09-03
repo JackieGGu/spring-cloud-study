@@ -42,6 +42,7 @@
       <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
     </dependency>
 
+    <!-- arthas -->
     <dependency>
       <groupId>com.taobao.arthas</groupId>
       <artifactId>arthas-spring-boot-starter</artifactId>
