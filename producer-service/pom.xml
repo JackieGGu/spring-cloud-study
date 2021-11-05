@@ -6,10 +6,10 @@
   <parent>
     <artifactId>spring-cloud-study</artifactId>
     <groupId>cn.jackiegu</groupId>
-    <version>1.0.0-snapshot</version>
+    <version>${revision}</version>
   </parent>
   <artifactId>producer-service</artifactId>
-  <version>1.0.0-snapshot</version>
+  <version>${revision}</version>
   <packaging>jar</packaging>
 
   <properties>
