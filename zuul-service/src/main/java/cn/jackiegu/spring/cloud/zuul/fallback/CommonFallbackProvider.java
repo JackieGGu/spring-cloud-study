@@ -9,7 +9,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -45,22 +44,22 @@ public class CommonFallbackProvider implements FallbackProvider {
             }
 
             @Override
-            public InputStream getBody() throws IOException {
+            public InputStream getBody() {
                 return new ByteArrayInputStream(COMMON_RESPONSE_BODY.getBytes(StandardCharsets.UTF_8));
             }
 
             @Override
-            public HttpStatus getStatusCode() throws IOException {
+            public HttpStatus getStatusCode() {
                 return HttpStatus.OK;
             }
 
             @Override
-            public int getRawStatusCode() throws IOException {
+            public int getRawStatusCode() {
                 return this.getStatusCode().value();
             }
 
             @Override
-            public String getStatusText() throws IOException {
+            public String getStatusText() {
                 return this.getStatusCode().getReasonPhrase();
             }
 
