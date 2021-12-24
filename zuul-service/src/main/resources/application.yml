@@ -1,0 +1,65 @@
+server:
+  port: 80
+  servlet:
+    context-path: /zuul
+  tomcat:
+    threads:
+      max: 5
+
+spring:
+  application:
+    name: zuul-service
+
+eureka:
+  instance:
+    appname: ${spring.application.name}
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://eureka-node1:10001/eureka/,http://eureka-node2:10002/eureka/
+
+ribbon:
+  restclient:
+    enabled: true
+  ConnectTimeout: 200
+  ReadTimeout: 3000000
+  OkToRetryOnAllOperations: false
+  MaxAutoRetriesNextServer: 2
+  MaxAutoRetries: 1
+
+feign:
+  hystrix:
+    enabled: true
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 6000000
+  threadpool:
+    default:
+      coreSize: 2
+      maxQueueSize: 2
+      queueSizeRejectionThreshold: 2
+
+zuul:
+  ignored-services: '*'
+  retryable: true
+  sensitive-headers: Cookie,Set-Cookie,Authorization
+  ignored-headers: Token
+  ribbon-isolation-strategy: THREAD
+  thread-pool:
+    thread-pool-key-prefix: zuul.
+    use-separate-thread-pools: true
+  routes:
+    consumer-service:
+      service-id: CONSUMER-SERVICE
+      strip-prefix: false
+      path: /consumer/**
+    producer-service:
+      service-id: PRODUCER-SERVICE
+      strip-prefix: false
+      path: /producer/**

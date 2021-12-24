@@ -1,10 +1,8 @@
 package cn.jackiegu.spring.cloud.zuul;
 
 import cn.jackiegu.spring.cloud.zuul.support.BeansSupport;
-import com.ctrip.framework.apollo.core.ConfigConsts;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
 import com.ctrip.framework.apollo.spring.annotation.ApolloConfigChangeListener;
-import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,7 +15,6 @@ import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
  * @author JackieGu
  * @date 2021/8/26
  */
-@EnableApolloConfig({ConfigConsts.NAMESPACE_APPLICATION, "spring-cloud-zuul.user"})
 @EnableZuulProxy
 @SpringBootApplication
 public class ZuulApplication {
