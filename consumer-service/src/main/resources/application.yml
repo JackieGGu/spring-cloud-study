@@ -11,6 +11,12 @@ spring:
   application:
     name: consumer-service
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
 logging:
   level:
     cn.jackiegu.spring.cloud.consumer.feign: debug
