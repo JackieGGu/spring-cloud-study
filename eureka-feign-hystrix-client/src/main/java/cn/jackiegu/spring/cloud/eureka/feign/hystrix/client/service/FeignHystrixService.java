@@ -1,5 +1,9 @@
 package cn.jackiegu.spring.cloud.eureka.feign.hystrix.client.service;
 
+import cn.jackiegu.spring.cloud.eureka.feign.hystrix.client.entity.UserEntity;
+
+import java.util.Map;
+
 /**
  * Feign测试服务
  *
@@ -9,4 +13,6 @@ package cn.jackiegu.spring.cloud.eureka.feign.hystrix.client.service;
 public interface FeignHystrixService {
 
     String hello(String name);
+
+    Map<String, Object> add(UserEntity user);
 }

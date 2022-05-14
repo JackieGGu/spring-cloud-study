@@ -6,6 +6,12 @@ spring:
   application:
     name: eureka-feign-hystrix-client
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
 eureka:
   instance:
     # Eureka界面显示的应用名称
@@ -27,3 +33,9 @@ feign:
   hystrix:
     # 开启熔断
     enabled: true
+
+hystrix:
+  dashboard:
+    # HystrixDashboard运行代理主机
+    proxy-stream-allow-list:
+      - 127.0.0.1
