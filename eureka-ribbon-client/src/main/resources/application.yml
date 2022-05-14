@@ -22,3 +22,13 @@ eureka:
     service-url:
       # 注册中心的地址
       defaultZone: http://eureka-node1:8761/eureka/,http://eureka-node2:8762/eureka/
+
+
+ribbon:
+  eureka:
+    # 禁止通过EurekaClient获取注册列表
+    enabled: true
+# 手动维护服务注册列表(eureka-client: 表示服务名)
+#eureka-client:
+#  ribbon:
+#    listOfServers: 127.0.0.1:8771,127.0.0.1:8772,127.0.0.1:8773
