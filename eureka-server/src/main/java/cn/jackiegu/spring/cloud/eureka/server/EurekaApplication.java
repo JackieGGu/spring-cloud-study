@@ -1,4 +1,4 @@
-package cn.jackiegu.spring.cloud.eureka;
+package cn.jackiegu.spring.cloud.eureka.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
