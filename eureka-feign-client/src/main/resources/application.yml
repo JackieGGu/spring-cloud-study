@@ -22,3 +22,8 @@ eureka:
     service-url:
       # 注册中心的地址
       defaultZone: http://eureka-node1:8761/eureka/,http://eureka-node2:8762/eureka/
+
+feign:
+  okhttp:
+    # 开启OKHttp Client
+    enabled: true
