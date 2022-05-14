@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Ribbon测试Controller
+ *
  * @author JackieGu
  * @date 2022/5/14
  */
