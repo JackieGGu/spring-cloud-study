@@ -1,5 +1,5 @@
 server:
-  port: 10002
+  port: 8762
 
 spring:
   application:
@@ -30,4 +30,4 @@ eureka:
     # registry-fetch-interval-seconds: 30
     service-url:
       # 注册中心的地址
-      defaultZone: http://eureka-node1:10001/eureka/
+      defaultZone: http://eureka-node1:8761/eureka/
