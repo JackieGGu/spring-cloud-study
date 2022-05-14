@@ -1,11 +1,10 @@
 server:
-  port: 10021
   servlet:
-    context-path: /producer
+    context-path: /eureka/client
 
 spring:
   application:
-    name: producer-service
+    name: eureka-client
 
 eureka:
   instance:
@@ -17,9 +16,9 @@ eureka:
     prefer-ip-address: true
     # 心跳周期
     # lease-renewal-interval-in-seconds: 30
-    # 在未收到心跳时最大续约时长, 若注册中心检测超过该时长将移除该实例
+    # 在未收到心跳时最大续约时长, 若注册中心检测超过该时长将移除该实例(服务剔除)
     # lease-expiration-duration-in-seconds: 90
   client:
     service-url:
       # 注册中心的地址
-      defaultZone: http://eureka-node1:10001/eureka/,http://eureka-node2:10002/eureka/
+      defaultZone: http://eureka-node1:8761/eureka/,http://eureka-node2:8762/eureka/
