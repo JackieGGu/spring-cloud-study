@@ -17,11 +17,11 @@ import java.util.Map;
 @RequestMapping
 public class EurekaClientController {
 
-    @GetMapping("get")
-    public Map<String, Object> get() {
+    @GetMapping("hello")
+    public String hello() {
         Map<String, Object> result = new HashMap<>();
         result.put("code", 200);
         result.put("success", true);
-        return result;
+        return result.toString();
     }
 }
