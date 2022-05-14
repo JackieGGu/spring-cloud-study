@@ -10,10 +10,9 @@
   <name>spring-cloud-study</name>
 
   <modules>
-    <module>consumer-service</module>
     <module>eureka-client</module>
+    <module>eureka-ribbon-client</module>
     <module>eureka-server</module>
-    <module>producer-service</module>
     <module>zuul-service</module>
   </modules>
 
