@@ -11,6 +11,11 @@ management:
     web:
       exposure:
         include: '*'
+  # hystrix turbine 集群监控只能设置context-path为"/"
+  server:
+    port: 18783
+    servlet:
+      context-path: /
 
 eureka:
   instance:
