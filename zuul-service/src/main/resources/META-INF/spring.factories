@@ -1,2 +1,0 @@
-org.springframework.boot.SpringApplicationRunListener=\
-  cn.jackiegu.spring.cloud.zuul.listener.ApolloRunListener

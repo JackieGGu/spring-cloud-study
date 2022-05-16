@@ -1,6 +1,0 @@
-app:
-  id: spring-cloud-zuul
-
-apollo:
-  bootstrap:
-    namespaces: application,spring-cloud-zuul.user
