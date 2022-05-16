@@ -1,0 +1,59 @@
+server:
+  servlet:
+    context-path: /eureka/zuul/client
+
+spring:
+  application:
+    name: eureka-zuul-client
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  # hystrix turbine 集群监控只能设置context-path为"/"
+  server:
+    port: 18780
+    servlet:
+      context-path: /
+
+eureka:
+  instance:
+    # Eureka界面显示的应用名称
+    appname: ${spring.application.name}
+    # Eureka界面显示的应用信息
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    # 使用IP地址注册
+    prefer-ip-address: true
+    # 心跳周期
+    # lease-renewal-interval-in-seconds: 30
+    # 在未收到心跳时最大续约时长, 若注册中心检测超过该时长将移除该实例(服务剔除)
+    # lease-expiration-duration-in-seconds: 90
+  client:
+    service-url:
+      # 注册中心的地址
+      defaultZone: http://eureka-node1:8761/eureka/,http://eureka-node2:8762/eureka/
+
+zuul:
+  # 针对所有路由的一个通用前缀
+  # prefix: /v1
+  # 设置不进行自动代理的服务, *表示所有
+  ignored-services: "*"
+  # 设置不向代理服务传递的HTTP Header
+  ignored-headers: token
+  # Ribbon隔离策略, THREAD: 线程池, SEMAPHORE: 信号量
+  ribbon-isolation-strategy: THREAD
+  routes:
+    # 服务路由
+    eureka-client:
+      # 路由路径
+      path: /eureka/client/**
+      # 服务名称
+      service-id: eureka-client
+      # 路由前缀在转发前是否被剥离
+      strip-prefix: false
+    eureka-feign-hystrix-client:
+      path: /eureka/feign/hystrix/client/**
+      service-id: eureka-feign-hystrix-client
+      strip-prefix: false
+
