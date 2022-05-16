@@ -17,6 +17,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients
 // 开启熔断监控页面
 @EnableHystrixDashboard
+// 开启hystrix.stream数据支持
 @EnableCircuitBreaker
 @EnableEurekaClient
 public class EurekaFeignHystrixClientApplication {
