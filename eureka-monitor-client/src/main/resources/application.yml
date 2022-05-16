@@ -39,4 +39,4 @@ turbine:
   # 集群名称
   cluster-name-expression: new String("default")
   # 监控的服务名
-  app-config: eureka-feign-hystrix-client
+  app-config: eureka-feign-hystrix-client,eureka-zuul-client
