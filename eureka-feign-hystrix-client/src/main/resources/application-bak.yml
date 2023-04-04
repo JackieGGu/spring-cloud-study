@@ -1,0 +1,112 @@
+server:
+  port: 10011
+  servlet:
+    context-path: /consumer
+  tomcat:
+    threads:
+      # tomcat最大线程
+      max: 10
+
+spring:
+  application:
+    name: consumer-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+logging:
+  level:
+    cn.jackiegu.spring.cloud.consumer.feign: debug
+    root: info
+
+eureka:
+  instance:
+    # Eureka界面显示的应用名称
+    appname: ${spring.application.name}
+    # Eureka界面显示的应用信息
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    # 使用IP地址注册
+    prefer-ip-address: true
+    # 心跳周期
+    # lease-renewal-interval-in-seconds: 30
+    # 在未收到心跳时最大续约时长, 若注册中心检测超过该时长将移除该实例
+    # lease-expiration-duration-in-seconds: 90
+  client:
+    service-url:
+      # 注册中心的地址
+      defaultZone: http://eureka-node1:10001/eureka/,http://eureka-node2:10002/eureka/
+
+# Ribbon全局配置
+ribbon:
+  restclient:
+    # 启用Ribbon的RestClient, 否则超时配置无效
+    enabled: true
+  eager-load:
+    # 对以下服务的Ribbon客户端进行饥饿加载
+    clients: producer-service
+
+# Ribbon针对某个服务的配置(服务名称.ribbon.configKey: configValue)
+producer-service:
+  ribbon:
+    # 负载均衡配置
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule
+    # 连接超时时间
+    ConnectTimeout: 2000
+    # 请求超时时间
+    ReadTimeout: 3000
+    # 无论什么类型请求失败都进行重试, 否则只会对GET请求重试
+    OkToRetryOnAllOperations: false
+    # 切换服务的重试次数
+    MaxAutoRetriesNextServer: 2
+    # 对当前服务的重试次数
+    MaxAutoRetries: 0
+
+# Feign配置
+feign:
+  compression:
+    request:
+      # 启用请求数据压缩
+      enabled: true
+      # 压缩数据类型
+      # mime-types: text/xml,application/xml,application/json
+      # 触发压缩大小的下限
+      # min-request-size: 2048
+    response:
+      # 启用响应数据压缩
+      enabled: true
+  hystrix:
+    # 开启Hystrix熔断降级
+    enabled: true
+  # client:
+    # config:
+      # Feign针对某个服务的配置(可能会导致Ribbon对该服务的配置失效)
+      # producer-service:
+        # 日志级别(NONE: 不输入任何日志, BASIC: 输出请求方法、URL、响应代码、执行时间, HEADERS: 在BASIC基础上加上请求和响应头信息, FULL: 输出所有日志)
+        # loggerLevel: FULL
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+         thread:
+           # 配置hystrix服务降级超时时长
+           timeoutInMilliseconds: 600000
+  threadpool:
+    # Hystrix针对某个服务的配置
+    producer-service:
+      # 允许最大线程数超过核心线程数
+      # allowMaximumSizeToDivergeFromCoreSize: false
+      # 核心线程数
+      coreSize: 3
+      # 最大线程数
+      # maximumSize: 3
+      # 闲置超时时间
+      # keepAliveTimeMinutes:
+      # 任务队列大小
+      maxQueueSize: 1
+      # 任务队列拒绝阈值
+      queueSizeRejectionThreshold: 1

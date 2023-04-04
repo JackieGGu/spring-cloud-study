@@ -1,0 +1,42 @@
+server:
+  servlet:
+    context-path: /eureka/monitor/client
+
+spring:
+  application:
+    name: eureka-monitor-client
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+eureka:
+  instance:
+    # Eureka界面显示的应用名称
+    appname: ${spring.application.name}
+    # Eureka界面显示的应用信息
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    # 使用IP地址注册
+    prefer-ip-address: true
+    # 心跳周期
+    # lease-renewal-interval-in-seconds: 30
+    # 在未收到心跳时最大续约时长, 若注册中心检测超过该时长将移除该实例(服务剔除)
+    # lease-expiration-duration-in-seconds: 90
+  client:
+    service-url:
+      # 注册中心的地址
+      defaultZone: http://eureka-node1:8761/eureka/,http://eureka-node2:8762/eureka/
+
+hystrix:
+  dashboard:
+    # HystrixDashboard运行代理主机
+    proxy-stream-allow-list:
+      - 127.0.0.1
+
+turbine:
+  # 集群名称
+  cluster-name-expression: new String("default")
+  # 监控的服务名
+  app-config: eureka-feign-hystrix-client,eureka-zuul-client
